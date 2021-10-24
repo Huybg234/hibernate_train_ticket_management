@@ -37,14 +37,93 @@ public class MainRun {
                     receipt();
                     break;
                 case 4:
+                    sortReceipt();
                     break;
                 case 5:
+                    CalculatorReceipt();
                     break;
                 case 6:
                     System.exit(0);
             }
 
         } while (true);
+    }
+
+    private static void CalculatorReceipt() {
+        for (Receipt receipt: receipts){
+            System.out.println("Tính hóa đơn cho khách hàng "+receipt.getCustomer().getName());
+            System.out.println(receipt.getPriceTotal());
+        }
+    }
+
+    private static void sortReceipt() {
+        if (receipts == null || receipts.size() == 0){
+            System.out.println("Bạn cần nhập hóa đơn trước khi sắp xếp!");
+            return;
+        }
+        boolean check = true;
+        do {
+            int sortChoice = 0;
+            System.out.println("---------- SẮP XẾP HÓA ĐƠN MUA VÉ TÀU HỎA ---------");
+            System.out.println("1. Theo tên họ tên người mua");
+            System.out.println("2. Theo số lượng vé mua (giảm dần)");
+            System.out.println("3. Thoát chức năng sắp xếp.");
+            System.out.print("Xin mời chọn chức năng: ");
+            do {
+                try {
+                    sortChoice = new Scanner(System.in).nextInt();
+                    check = true;
+                } catch (Exception e) {
+                    System.out.println("Không được nhập ký tự khác ngoài số! Nhập lại: ");
+                    check = false;
+                    continue;
+                }
+                if (sortChoice < 1 || sortChoice > 3) {
+                    System.out.print("Nhập trong khoảng từ 1 đến 3! Nhập lại: ");
+                    check = false;
+                }
+            } while (!check);
+            switch (sortChoice) {
+                case 1:
+                    sortByCustomerName();
+                    break;
+                case 2:
+                    sortByTicketNumber();
+                    break;
+                case 3:
+                    return;
+            }
+        } while (true);
+    }
+
+    private static void sortByTicketNumber() {
+        for (int i=0; i < receipts.size(); i++){
+            for (int j = 0; j < receipts.size(); j++){
+                if (receipts.get(i).getSum() < receipts.get(j).getSum()){
+                    Receipt receipt = receipts.get(i);
+                    receipts.set(i, receipts.get(j));
+                    receipts.set(j, receipt);
+                }
+            }
+        }
+        for (Receipt receipt: receipts){
+            System.out.println(receipt);
+        }
+    }
+
+    private static void sortByCustomerName() {
+        for (int i=0; i < receipts.size(); i++){
+            for (int j= i+1; j < receipts.size() ; j++){
+                if (receipts.get(i).getCustomer().getName().compareTo(receipts.get(j).getCustomer().getName()) >0){
+                    Receipt receipt = receipts.get(i);
+                    receipts.set(i, receipts.get(j));
+                    receipts.set(j, receipt);
+                }
+            }
+        }
+        for (Receipt receipt : receipts){
+            System.out.println(receipt);
+        }
     }
 
     private static boolean isValidCustomerAndTicket() {
@@ -101,14 +180,16 @@ public class MainRun {
                             check = false;
                             continue;
                         }
-                        if (number<=0 || number > 4){
-                            System.out.println("0 < Số lượng loại vé <= 4! Nhập lại:");
+                        if (number<=0 || number > 4 || number > tickets.size()){
+                            System.out.println("0 < Số lượng loại vé <= 4 và tổng số vé! Nhập lại:");
                             check = false;
                         }
                     }while (!check);
                     int ticketId;
                     Ticket ticket;
                     List<TicketTable> ticketTables = new ArrayList<>();
+                    int ticketTotal = 0;
+                    float price = 0;
                     for (int j=0; j < number; j++){
                         do {
                             try {
@@ -138,6 +219,8 @@ public class MainRun {
                                         check = false;
                                     }
                                 }while (!check);
+                                price += ticketNum * ticket.getPrice();
+                                ticketTotal += ticketNum;
                                 ticketTables.add(new TicketTable(ticket, ticketNum));
                                 receiptEntities.add(new ReceiptEntity(customer, ticket, ticketNum));
                                 break;
@@ -146,6 +229,8 @@ public class MainRun {
                         } while (true);
                     }
                     Receipt receipt = new Receipt(customer, ticketTables);
+                    receipt.setSum(ticketTotal);
+                    receipt.setPriceTotal(price);
                     receiptList.add(receipt);
                     break;
                 }
